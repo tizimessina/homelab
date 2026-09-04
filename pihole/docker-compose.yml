@@ -15,9 +15,13 @@ services:
     restart: unless-stopped
     depends_on:
       - unbound
+    cap_add:
+      - SYS_NICE
+      - SYS_TIME
     environment:
       TZ: ${TZ}
       FTLCONF_webserver_api_password: ${PIHOLE_WEBPASSWORD}
+      FTLCONF_dns_listeningMode: 'all'
     ports:
       - "53:53/tcp"
       - "53:53/udp"

@@ -1,0 +1,11 @@
+services:
+  portainer:
+    image: portainer/portainer-ce:2.39.6
+    container_name: portainer
+    restart: unless-stopped
+    ports:
+      - "9443:9443"   # Web UI (HTTPS, self-signed por default)
+      - "8000:8000"   # Solo necesario si vas a conectar Edge Agents remotos
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./portainer-data:/data
