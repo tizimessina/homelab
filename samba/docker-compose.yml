@@ -1,0 +1,15 @@
+services:
+  samba:
+    image: ghcr.io/servercontainers/samba:latest
+    container_name: samba
+    restart: unless-stopped
+    network_mode: host
+    mem_limit: 512m
+    environment:
+      TZ: ${TZ}
+      SAMBA_CONF_LOG_LEVEL: '1'
+      WSDD2_DISABLE: 0
+      ACCOUNT_tizimessina: ${ACCOUNT_tizimessina}
+      SAMBA_VOLUME_CONFIG_seagate: "[Seagate]; path=/shares/seagate; valid users = tizimessina; guest ok = no; read only = no; browseable = yes"
+    volumes:
+      - /mnt/disco-seagate:/shares/seagate
