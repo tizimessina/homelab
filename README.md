@@ -23,7 +23,7 @@ La idea no es solo "instalar cosas" — cada carpeta de este repo tiene su propi
 | **RAM** | 4GB (3.89GB usables) |
 | **Disco sistema** | SSD WD Blue 120GB (SATA) |
 | **Disco datos** | HDD Seagate 2TB (USB portátil) |
-| **SO** | Ubuntu Server 24.04 LTS |
+| **SO** | Ubuntu Server 26.04 LTS |
 
 Hardware modesto a propósito — parte del ejercicio es aprender a tomar buenas decisiones de arquitectura *a pesar de* las limitaciones de recursos, no ignorándolas. Cada elección de stack (Docker en vez de Proxmox, VictoriaMetrics en vez de Prometheus donde aplique, etc.) está pensada primero para este hardware real.
 
