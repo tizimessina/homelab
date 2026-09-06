@@ -23,7 +23,7 @@ La idea no es solo "instalar cosas" — cada carpeta de este repo tiene su propi
 | **RAM** | 4GB (3.89GB usables) |
 | **Disco sistema** | SSD WD Blue 120GB (SATA) |
 | **Disco datos** | HDD Seagate 2TB (único dispositivo en el bus USB) |
-| **Red** | WiFi interno (Realtek RTL8188EE) como principal, Ethernet Gigabit (Realtek RTL8111) como failover automático — ver detalle en [Topología de red](#-topología-de-red-y-su-historia) |
+| **Red** | Ethernet Gigabit (Realtek RTL8111) conectado directo al Deco X80 — sin nodos ni extensores intermedios. Ver historia completa en [Topología de red](#-topología-de-red-y-su-historia) |
 | **SO** | Ubuntu Server 24.04 LTS |
 
 Hardware modesto a propósito — parte del ejercicio es aprender a tomar buenas decisiones de arquitectura *a pesar de* las limitaciones de recursos, no ignorándolas. Cada elección de stack (Docker en vez de Proxmox, VictoriaMetrics en vez de Prometheus donde aplique, etc.) está pensada primero para este hardware real.
@@ -50,17 +50,27 @@ Cada carpeta con servicio activo tiene su propio README con arquitectura, setup,
 
 ## 🌐 Topología de red (y su historia)
 
-El servidor pasó por tres configuraciones de conectividad distintas, cada una diagnosticada con datos reales en vez de intuición:
+El servidor pasó por cuatro configuraciones de conectividad distintas, cada una diagnosticada con datos reales en vez de intuición.
 
-1. **Dongle WiFi USB** (setup original) — compartía bus USB con el disco Seagate, sujeto a autosuspend y drivers menos maduros. Terminó fallando por hardware (`device descriptor read/64, error -32` en `dmesg`).
-2. **Ethernet directo** (fix de emergencia) — al fallar el dongle, se conectó por cable hasta un extensor de rango WiFi 4 que hace de puente hacia el Deco principal. Resolvió el problema de hardware, pero expuso dos cuellos de botella nuevos: el puerto Ethernet del extensor es Fast Ethernet (100Mbps, confirmado con `ethtool`), y el backhaul extensor↔Deco por WiFi 4 sufre "double dip" (un solo radio repartiendo turnos entre hablar con el servidor y con el Deco) — confirmado con `speedtest-cli`: subida errática entre 2.9 y 39 Mbps.
-3. **WiFi interno directo al Deco** (configuración actual) — usando la placa integrada de la Lenovo (Realtek RTL8188EE, gama baja, pero con señal al 100% por estar físicamente cerca del Deco). Elimina el salto intermedio del extensor. Resultado medido: subida estable en 74-81 Mbps, latencia igual de buena que por cable (12-16ms), ~1.3% de pérdida de paquetes ocasional (esperable en WiFi con muchas redes vecinas visibles).
+**1. Dongle WiFi USB** (setup original) — compartía bus USB con el disco Seagate, sujeto a autosuspend y drivers menos maduros. Terminó fallando por hardware (`device descriptor read/64, error -32` en `dmesg`).
 
-**Configuración final:** ambas interfaces (`wlp3s0` WiFi interno y `enp2s0` Ethernet) conviven activas, con métricas de ruta fijadas en Netplan (`route-metric: 100` para WiFi, `700` para Ethernet) para que el WiFi gane como ruta principal pero el cable siga sirviendo de failover automático si el WiFi cae — sin intervención manual.
+**2. Ethernet vía extensor de rango** (fix de emergencia) — al fallar el dongle, se conectó por cable hasta un extensor de rango WiFi 4 que hacía de puente hacia el Deco. Resolvió el problema de hardware, pero expuso dos cuellos de botella nuevos: el puerto Ethernet del extensor era Fast Ethernet (100Mbps, confirmado con `ethtool`), y el backhaul extensor↔Deco por WiFi 4 sufría "double dip" (un solo radio repartiendo turnos entre hablar con el servidor y con el Deco) — confirmado con `speedtest-cli`: subida errática entre 2.9 y 39 Mbps.
 
-La reserva DHCP de `192.168.10.150` en el Deco está atada a la MAC del WiFi interno; Pi-hole escucha en `0.0.0.0` así que responde sin importar por qué interfaz llegue la consulta.
+**3. WiFi interno directo al Deco** — usando la placa integrada de la Lenovo (Realtek RTL8188EE, gama baja, pero con señal al 100% por estar físicamente cerca del Deco). Eliminaba el salto intermedio del extensor. Mejoró la subida (74-81 Mbps estable) pero seguía siendo un enlace inalámbrico, con ~1.3% de pérdida ocasional.
 
-**Pendiente evaluado, no resuelto:** el cuello de botella real de fondo sigue siendo el tramo extensor↔Deco por WiFi 4. La solución de raíz sería backhaul cableado hasta el Deco principal, o reemplazar el extensor por un nodo Deco real con banda de backhaul dedicada.
+**4. Ethernet directo al Deco (configuración actual y definitiva)** — se reubicó físicamente el servidor debajo del router y se conectó por cable Cat5e directo al Deco X80 (único router de la red, sin nodos ni extensores). `ethtool` confirma `1000baseT/Full` negociado en ambos extremos — Gigabit real de punta a punta, sin ningún intermediario limitando la velocidad. Ping con jitter de apenas 0.352ms, el más estable medido en las cuatro configuraciones.
+
+### Gotcha: NetworkManager vs Netplan peleando por la misma interfaz
+
+Durante la migración de la config 3 a la 4, la interfaz WiFi (`wlp3s0`) seguía reconectándose sola después de declararla `down` y sacarla del Netplan. Causa: en la config 3 se había usado `nmcli connection add/connect` para conectar rápido al WiFi, lo cual crea un perfil **persistente en NetworkManager** — un gestor de red completamente separado de Netplan/systemd-networkd. Ambos pueden coexistir en el mismo Ubuntu Server, y cuando lo hacen sin coordinación, cada uno cree tener autoridad sobre la interfaz: Netplan la declaraba apagada, NetworkManager la volvía a levantar con su propio perfil guardado (con su propia métrica de ruta, generando entradas duplicadas y conflictivas en la tabla de rutas).
+
+Fix: `nmcli connection delete <nombre-del-perfil>` para borrar el perfil persistente, no solo `ip link set down` (que solo apaga la interfaz momentáneamente, sin evitar que NetworkManager la reactive).
+
+**Lección para el futuro:** usar `nmcli` para una conexión rápida de emergencia está bien, pero si después se declara la configuración definitiva en Netplan, hay que acordarse de borrar el perfil de NetworkManager — sino quedan dos gestores de red compitiendo por la misma interfaz sin que sea evidente por qué.
+
+### Configuración final
+
+Una sola interfaz activa (`enp2s0`, Ethernet), sin WiFi de respaldo por ahora. Reserva DHCP de `192.168.10.150` en el Deco atada a la MAC del cable (`f0:76:1c:26:9f:86`). Pi-hole escucha en `0.0.0.0`, así que responde sin importar la interfaz por la que llegue la consulta.
 
 ## 🗺️ Roadmap general
 
