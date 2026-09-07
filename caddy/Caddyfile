@@ -1,0 +1,19 @@
+pihole.home.arpa {
+    tls internal
+    redir / /admin/
+    reverse_proxy 192.168.10.150:8080
+}
+
+portainer.home.arpa {
+    tls internal
+    reverse_proxy 192.168.10.150:9443 {
+        transport http {
+            tls_insecure_skip_verify
+        }
+    }
+}
+
+uptime.home.arpa {
+    tls internal
+    reverse_proxy 192.168.10.150:3001
+}
