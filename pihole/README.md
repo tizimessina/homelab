@@ -63,6 +63,16 @@ Cliente (LAN) -> Pi-hole (172.20.0.3, puerto 53/80 publicados)
 - `dig @192.168.10.150 cloudflare.com` resuelve correctamente vía Unbound.
 - Windows toma `192.168.10.150` como DNS automáticamente vía DHCP del Deco.
 
+## Blocklists
+
+- StevenBlack hosts (default, ~80k dominios)
+- HaGeZi Multi Normal (~192k dominios adicionales) — agregada 2026-09-07
+  para subir el nivel de bloqueo de ads/tracking/telemetría más allá del
+  default, manteniendo baja tasa de falsos positivos.
+  https://github.com/hagezi/dns-blocklists
+
+Total: ~271k dominios en gravity.
+
 ## Referencia rápida
 
 - Web UI: http://192.168.10.150/admin
