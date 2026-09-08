@@ -63,6 +63,27 @@ Cliente (LAN) -> Pi-hole (172.20.0.3, puerto 53/80 publicados)
 - `dig @192.168.10.150 cloudflare.com` resuelve correctamente vía Unbound.
 - Windows toma `192.168.10.150` como DNS automáticamente vía DHCP del Deco.
 
+## Gotcha: "Address already in use" después de un apagado no controlado
+
+Tras un corte de luz o apagado abrupto del servidor, Docker a veces queda
+con estado de red corrupto — cree que la IP fija de Unbound (172.20.0.2)
+sigue en uso aunque no haya ningún container real ahí. Los containers
+fallan al arrancar con `failed to set up container networking: Address
+already in use`.
+
+Fix:
+```bash
+docker compose down
+docker network rm pihole_dns_network  # si sigue listada tras el down
+docker compose up -d
+```
+
+Si persiste, reiniciar el daemon completo (afecta a todos los containers
+del servidor, pero todos tienen `restart: unless-stopped` y vuelven solos):
+```bash
+sudo systemctl restart docker
+```
+
 ## Blocklists
 
 - StevenBlack hosts (default, ~80k dominios)
