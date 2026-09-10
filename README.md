@@ -87,6 +87,27 @@ Docker + Git ──► Pi-hole + Unbound ──► Portainer ──► Samba ─
 
 Este homelab alimenta directo mi camino hacia certificaciones AWS (arrancando por Cloud Practitioner) y sirve de entorno de práctica para Terraform antes de tocar infraestructura real de clientes.
 
+## Apagado del panel físico
+
+El servidor no tiene monitor conectado en uso normal (headless, acceso
+por SSH), pero el panel integrado del AIO quedaba encendido indefinidamente
+a pesar de `consoleblank` configurado en GRUB.
+
+Se probaron 3 métodos antes de encontrar uno que funcionara en este hardware:
+- `consoleblank=60` (kernel param) — solo pone texto negro, no dispara DPMS real
+- `vbetool dpms off` — falla con "Real mode call failed" (necesita BIOS legacy,
+  el equipo arranca en UEFI)
+- `setterm --blank force` — falla por detección de terminal (`TERM` no
+  soportado), incluso corriendo sin sesión SSH de por medio
+
+**Lo que funciona:** escribir directo al framebuffer del kernel:
+```bash
+echo 4 | sudo tee /sys/class/graphics/fb0/blank   # apagar (powerdown real)
+echo 0 | sudo tee /sys/class/graphics/fb0/blank   # reactivar si hace falta
+```
+Automatizado como servicio systemd (`screen-off.service`), corre una vez
+en cada arranque.
+
 ## 🎯 Por qué existe este repo
 
 Además de ser mi entorno de aprendizaje, este repo funciona como evidencia de trabajo real para mi perfil profesional — no tutoriales seguidos al pie de la letra, sino diagnóstico y resolución de problemas reales de infraestructura, documentados a medida que aparecen.
