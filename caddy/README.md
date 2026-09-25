@@ -9,6 +9,13 @@ Caddy no comparte red de Docker con Pi-hole/Portainer/Uptime Kuma (cada uno
 es un proyecto de Compose separado) — les habla a través de la IP del host
 (`192.168.10.150:puerto`), ya que todos publican su puerto ahí.
 
+Las apps nuevas usan otro patrón: Caddy se une a la red externa `proxy`
+(`docker network create proxy`) y las apps que se suman ahí se alcanzan
+por nombre de contenedor, **sin publicar puertos en el host**. Cada app
+tiene su propio archivo en `sites/<app>.caddy`, que el Caddyfile incluye
+con `import sites/*.caddy` — agregar o sacar una app no toca los bloques
+de las demás.
+
 `tls internal` genera una CA propia para firmar certificados de estos
 nombres internos, en vez de pedir certificados públicos (imposible para
 `.home.arpa`, que no es un dominio real de internet).
@@ -20,6 +27,12 @@ nombres internos, en vez de pedir certificados públicos (imposible para
 | pihole.home.arpa | 192.168.10.150:8080 | Redirect automático a /admin |
 | portainer.home.arpa | 192.168.10.150:9443 | TLS insecure_skip_verify (cert autofirmado propio de Portainer) |
 | uptime.home.arpa | 192.168.10.150:3001 | — |
+| agroapp.home.arpa | agroapp-web:80 (red `proxy`) | `sites/agroapp.caddy` |
+| api.agroapp.home.arpa | agroapp-api:3000 (red `proxy`) | `sites/agroapp.caddy` |
+
+Cada nombre necesita su registro en Pi-hole (Local DNS → DNS Records,
+apuntando a `192.168.10.150`) — esa config vive en `pihole-data/`, que no
+se versiona, por eso queda listada acá.
 
 ## Gotchas
 
@@ -40,10 +53,11 @@ nombres internos, en vez de pedir certificados públicos (imposible para
 
 ## Setup
 
-1. `docker compose up -d`
-2. Copiar el root CA a un lugar accesible:
+1. Crear la red compartida (una sola vez): `docker network create proxy`
+2. `docker compose up -d`
+3. Copiar el root CA a un lugar accesible:
    `docker exec caddy cat /data/caddy/pki/authorities/local/root.crt`
-3. Instalar ese certificado como Autoridad Raíz de Confianza en cada
+4. Instalar ese certificado como Autoridad Raíz de Confianza en cada
    dispositivo que se quiera usar sin advertencias (ver abajo).
 
 ## Confiar en la CA interna, por sistema operativo

@@ -8,5 +8,15 @@ services:
       - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./sites:/etc/caddy/sites
       - ./caddy-data:/data
       - ./caddy-config:/config
+    networks:
+      - default
+      - proxy
+
+networks:
+  # Red compartida con las apps que se proxean por nombre de contenedor
+  # (creada una vez con `docker network create proxy`).
+  proxy:
+    external: true

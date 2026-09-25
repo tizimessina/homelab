@@ -33,6 +33,7 @@ flowchart LR
         PO["Portainer<br/>gestión de containers"]
         UK["Uptime Kuma<br/>monitoreo"]
         SM["Samba<br/>servidor de archivos"]
+        AG["AgroApp<br/>web + API (app propia)"]
         HDD[("HDD 2TB")]
     end
 
@@ -44,6 +45,7 @@ flowchart LR
     CA --> PH
     CA --> PO
     CA --> UK
+    CA -- "red proxy<br/>sin puertos publicados" --> AG
     C -- "SMB :445" --> SM
     SM --> HDD
     UK -- "alertas" --> TG["📱 Telegram"]
@@ -70,6 +72,7 @@ Hardware modesto a propósito — parte del ejercicio es aprender a tomar buenas
 - **Todo versionado en Git** desde el día uno — decisiones, configs y fixes quedan documentados, no solo en mi cabeza.
 - **`.env` y datos persistentes nunca se suben** — solo la infraestructura como código.
 - **Mínimo privilegio por default** — el socket de Docker solo se monta donde es imprescindible (Portainer), y ningún servicio se expone fuera de la LAN.
+- **Apps propias sin puertos en el host** — las aplicaciones nuevas (como AgroApp) solo viven en una red Docker compartida con Caddy, que es el único punto de entrada.
 
 ## 📦 Servicios
 
@@ -80,6 +83,7 @@ Hardware modesto a propósito — parte del ejercicio es aprender a tomar buenas
 | [`samba/`](./samba) | Servidor de archivos sobre el disco Seagate | ✅ Funcionando |
 | [`uptime-kuma/`](./uptime-kuma) | Monitoreo de disponibilidad de 5 puntos clave de la red, con alertas por Telegram | ✅ Funcionando |
 | [`caddy/`](./caddy) | Reverse proxy — acceso a cada servicio por nombre (`servicio.home.arpa`) con HTTPS vía CA interna | ✅ Funcionando |
+| [`agroapp/`](./agroapp) | Despliegue de AgroApp (app propia, repo aparte) detrás de Caddy, sin puertos expuestos | ✅ Funcionando |
 | [`host/`](./host) | Configuración del sistema operativo fuera de Docker (servicios systemd) | ✅ Funcionando |
 | `backups/` | Backups automáticos de volúmenes y configs | 🔜 Próximo |
 | `gitea/` | Git self-hosted + runner CI/CD | 🔜 Planeado |
