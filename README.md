@@ -53,7 +53,11 @@ flowchart LR
 
 ## 📸 Capturas
 
-<!-- Pendiente: docs/img/uptime-kuma.png con los 6 monitores en 100% -->
+**Uptime Kuma** — historial real, sin maquillar:
+
+![Monitores en Uptime Kuma](docs/img/uptime-kuma.png)
+
+> El log de eventos muestra una dependencia en cascada: al recrear Pi-hole (19:48), su monitor cae con `ESERVFAIL` y en el mismo minuto cae AgroApp con `ENOTFOUND` — la app estaba sana, pero su nombre `*.home.arpa` depende del DNS del homelab. Los porcentajes bajos de Samba y AgroApp son de ese mismo día de cambios (servicios bajados a propósito para pruebas y un deploy).
 
 | Pi-hole — DNS de toda la red | Portainer — stacks del homelab |
 |---|---|
