@@ -7,7 +7,7 @@ Infraestructura casera para aprender Sysadmin, Cloud Engineering y AIOps con las
 ![OS](https://img.shields.io/badge/OS-Ubuntu%20Server-E95420?logo=ubuntu&logoColor=white)
 ![IaC](https://img.shields.io/badge/infra-versionada%20en%20git-success)
 
-> 🇬🇧 **English summary:** A self-hosted homelab running on a recycled 2014 all-in-one PC (Celeron J1800, 4GB RAM) with Ubuntu Server and Docker Compose. It provides network-wide DNS with ad blocking and recursive resolution (Pi-hole + Unbound), an internal reverse proxy with its own certificate authority (Caddy), uptime monitoring with Telegram alerts (Uptime Kuma), a file server (Samba) and container management (Portainer). Every service is defined as code, and each folder documents the real troubleshooting it took to get it working. Docs are in Spanish.
+> 🇬🇧 **English summary:** A self-hosted homelab running on a recycled 2014 all-in-one PC (Celeron J1800, 4GB RAM) with Ubuntu Server and Docker Compose. It provides network-wide DNS with ad blocking and recursive resolution (Pi-hole + Unbound), an internal reverse proxy with its own certificate authority (Caddy), uptime monitoring with Telegram alerts (Uptime Kuma), a file server (Samba) and container management (Portainer). It also hosts my own application (AgroApp) behind the reverse proxy, with no ports exposed on the host. Every service is defined as code, and each folder documents the real troubleshooting it took to get it working. Docs are in Spanish.
 
 ---
 
