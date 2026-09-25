@@ -23,6 +23,7 @@ la gestión de containers.
 | Samba | TCP Port | `192.168.10.150:445` |
 | Deco (Gateway) | Ping | `192.168.10.1` — distingue caída de red interna vs. caída de internet |
 | Internet | Ping | `1.1.1.1` |
+| AgroApp | HTTP(s) | `https://api.agroapp.home.arpa/health` — prueba la cadena completa en un solo chequeo: DNS (Pi-hole) → Caddy → API → base de datos. Con "Ignore TLS/SSL errors", porque el container no confía en la CA interna de Caddy |
 
 ## Notificaciones
 

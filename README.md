@@ -81,7 +81,7 @@ Hardware modesto a propósito — parte del ejercicio es aprender a tomar buenas
 | [`pihole/`](./pihole) | DNS propio con bloqueo de ads (Pi-hole, ~271k dominios) + resolución recursiva sin terceros (Unbound) | ✅ Funcionando |
 | [`portainer/`](./portainer) | Panel visual de gestión de containers | ✅ Funcionando |
 | [`samba/`](./samba) | Servidor de archivos sobre el disco Seagate | ✅ Funcionando |
-| [`uptime-kuma/`](./uptime-kuma) | Monitoreo de disponibilidad de 5 puntos clave de la red, con alertas por Telegram | ✅ Funcionando |
+| [`uptime-kuma/`](./uptime-kuma) | Monitoreo de disponibilidad de 6 puntos clave (servicios, red, internet y AgroApp de punta a punta), con alertas por Telegram | ✅ Funcionando |
 | [`caddy/`](./caddy) | Reverse proxy — acceso a cada servicio por nombre (`servicio.home.arpa`) con HTTPS vía CA interna | ✅ Funcionando |
 | [`agroapp/`](./agroapp) | Despliegue de [AgroApp](https://github.com/JereC4/TP-DSW-2025-3k03-Messina-Costantini-Enrico) (app full-stack desarrollada en equipo para la facu, repo aparte) detrás de Caddy, sin puertos expuestos | ✅ Funcionando |
 | [`host/`](./host) | Configuración del sistema operativo fuera de Docker (servicios systemd) | ✅ Funcionando |

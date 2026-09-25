@@ -59,6 +59,13 @@ servicio `migrate` aplica migraciones y el seed, que es idempotente
   y ese puerto ya es de Pi-hole (`Bind for 0.0.0.0:8080 failed: port is
   already allocated`). El override hace `ports: !reset []` en los tres
   servicios, así que ya no compite por puertos del host.
+- **Nunca `docker compose up` directo en `~/agroapp`**: sin el override,
+  el stack arranca como en desarrollo — publica la base (`3307`, con las
+  credenciales de desarrollo del repo) y la API (`3000`) a toda la LAN,
+  usa el `JWT_SECRET` de desarrollo, y el frontend se compila apuntando a
+  `localhost:3000`. El síntoma visible es el mismo choque con el `8080`
+  de Pi-hole. Fix: `docker compose down` en `~/agroapp` (sin `-v`, para
+  conservar la base) y `./deploy.sh --no-pull` desde esta carpeta.
 - **`VITE_API_URL` se compila dentro del frontend** — cambiarla en `.env`
   requiere rebuild, que `deploy.sh` hace siempre (`--build`).
 - **La CA interna tiene que estar confiada en el dispositivo.** Con el
