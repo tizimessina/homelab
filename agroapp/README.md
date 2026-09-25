@@ -1,7 +1,9 @@
 # AgroApp (despliegue en el homelab)
 
-AgroApp es una app propia (TP de la facu) que vive en **otro repo**
-(`~/agroapp`, con su `docker-compose.yml` de db + migrate + api + web).
+AgroApp es una app full-stack (React + Express + Prisma + MySQL) que
+desarrollamos en equipo como TP de Desarrollo de Software, y vive en
+**[otro repo](https://github.com/JereC4/TP-DSW-2025-3k03-Messina-Costantini-Enrico)**
+(clonado en `~/agroapp`, con su `docker-compose.yml` de db + migrate + api + web).
 Esta carpeta no copia la app: solo define **cómo se despliega en este
 server**, con un override de Compose que se aplica encima del original.
 Así el repo de la app queda intacto para el resto del equipo.

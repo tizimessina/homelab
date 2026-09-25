@@ -83,7 +83,7 @@ Hardware modesto a propósito — parte del ejercicio es aprender a tomar buenas
 | [`samba/`](./samba) | Servidor de archivos sobre el disco Seagate | ✅ Funcionando |
 | [`uptime-kuma/`](./uptime-kuma) | Monitoreo de disponibilidad de 5 puntos clave de la red, con alertas por Telegram | ✅ Funcionando |
 | [`caddy/`](./caddy) | Reverse proxy — acceso a cada servicio por nombre (`servicio.home.arpa`) con HTTPS vía CA interna | ✅ Funcionando |
-| [`agroapp/`](./agroapp) | Despliegue de AgroApp (app propia, repo aparte) detrás de Caddy, sin puertos expuestos | ✅ Funcionando |
+| [`agroapp/`](./agroapp) | Despliegue de [AgroApp](https://github.com/JereC4/TP-DSW-2025-3k03-Messina-Costantini-Enrico) (app full-stack desarrollada en equipo para la facu, repo aparte) detrás de Caddy, sin puertos expuestos | ✅ Funcionando |
 | [`host/`](./host) | Configuración del sistema operativo fuera de Docker (servicios systemd) | ✅ Funcionando |
 | `backups/` | Backups automáticos de volúmenes y configs | 🔜 Próximo |
 | `gitea/` | Git self-hosted + runner CI/CD | 🔜 Planeado |
