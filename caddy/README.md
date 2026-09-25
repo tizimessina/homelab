@@ -44,5 +44,23 @@ nombres internos, en vez de pedir certificados públicos (imposible para
 2. Copiar el root CA a un lugar accesible:
    `docker exec caddy cat /data/caddy/pki/authorities/local/root.crt`
 3. Instalar ese certificado como Autoridad Raíz de Confianza en cada
-   dispositivo que se quiera usar sin advertencias (ver README general
-   para el paso a paso por SO).
+   dispositivo que se quiera usar sin advertencias (ver abajo).
+
+## Confiar en la CA interna, por sistema operativo
+
+El `root.crt` se puede tomar directo del share de Samba
+(`\\192.168.10.150\Seagate\certificados\`).
+
+- **Windows:** doble click en `root.crt` → Instalar certificado → Equipo
+  local → "Colocar todos los certificados en el siguiente almacén" →
+  *Entidades de certificación raíz de confianza*. Reiniciar el navegador.
+- **macOS:** abrir `root.crt` con Acceso a Llaveros, agregarlo al llavero
+  *Sistema*, y en sus detalles marcar *Confiar siempre*.
+- **iOS / iPadOS:** instalar el perfil (Ajustes → Perfil descargado) y
+  después habilitarlo en Ajustes → General → Información → Ajustes de
+  confianza de certificados.
+- **Android:** Ajustes → Seguridad → Encriptación y credenciales → Instalar
+  un certificado → Certificado de CA (la ruta exacta varía por fabricante).
+- **Linux:** copiar a `/usr/local/share/ca-certificates/homelab.crt` y
+  correr `sudo update-ca-certificates`. Firefox usa su propio almacén:
+  Ajustes → Privacidad y seguridad → Ver certificados → Importar.

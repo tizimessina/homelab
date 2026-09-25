@@ -40,4 +40,4 @@ Aplicado por default a todos los monitores.
 
 ## Referencia
 
-- Web UI: http://192.168.10.150:3001
+- Web UI: https://uptime.home.arpa (vía [Caddy](../caddy)) o http://192.168.10.150:3001

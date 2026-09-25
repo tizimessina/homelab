@@ -5,7 +5,7 @@ depender de terceros (Unbound), corriendo en containers separados.
 
 ## Arquitectura
 
-Cliente (LAN) -> Pi-hole (172.20.0.3, puerto 53/80 publicados)
+Cliente (LAN) -> Pi-hole (172.20.0.3, puertos 53 y 8080 publicados)
               -> Unbound (172.20.0.2, solo red interna)
               -> Root servers (resolución recursiva)
 
@@ -49,7 +49,8 @@ Cliente (LAN) -> Pi-hole (172.20.0.3, puerto 53/80 publicados)
   normal desde la LAN a través de Docker. Se confirmó en el log de FTL:
   `WARNING: dnsmasq: ignoring query from non-local network 192.168.10.150`
   Fix: `docker exec pihole pihole-FTL --config dns.listeningMode ALL`
-  seguido de `docker restart pihole`.
+  seguido de `docker restart pihole`. Después quedó fijado en el compose
+  (`FTLCONF_dns_listeningMode: 'all'`) para que sobreviva a recrear el container.
 
   Antes de encontrar esta causa real se descartaron (en orden):
   DNS manual de Quad9 configurado en el adaptador de Windows (real,
@@ -96,6 +97,6 @@ Total: ~271k dominios en gravity.
 
 ## Referencia rápida
 
-- Web UI: http://192.168.10.150/admin
+- Web UI: https://pihole.home.arpa (vía [Caddy](../caddy)) o http://192.168.10.150:8080/admin
 - Ver upstream actual: `docker exec pihole pihole-FTL --config dns.upstreams`
 - Ver logs: `docker compose logs pihole` / `docker compose logs unbound`

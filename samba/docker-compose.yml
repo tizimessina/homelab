@@ -5,11 +5,13 @@ services:
     restart: unless-stopped
     network_mode: host
     mem_limit: 512m
+    # Formato lista para poder interpolar el nombre de usuario dentro del nombre de la variable.
+    # WSDD2 queda habilitado por no definir WSDD2_DISABLE (la imagen lo desactiva si la variable
+    # existe, sin importar su valor — ver Gotchas en el README).
     environment:
-      TZ: ${TZ}
-      SAMBA_CONF_LOG_LEVEL: '1'
-      WSDD2_DISABLE: 0
-      ACCOUNT_tizimessina: ${ACCOUNT_tizimessina}
-      SAMBA_VOLUME_CONFIG_seagate: "[Seagate]; path=/shares/seagate; valid users = tizimessina; guest ok = no; read only = no; browseable = yes"
+      - TZ=${TZ}
+      - SAMBA_CONF_LOG_LEVEL=1
+      - ACCOUNT_${SAMBA_USER}=${SAMBA_PASSWORD_HASH}
+      - SAMBA_VOLUME_CONFIG_seagate=[Seagate]; path=/shares/seagate; valid users = ${SAMBA_USER}; guest ok = no; read only = no; browseable = yes
     volumes:
       - /mnt/disco-seagate:/shares/seagate

@@ -4,7 +4,10 @@ Infraestructura casera para aprender Sysadmin, Cloud Engineering y AIOps con las
 
 ![Status](https://img.shields.io/badge/status-en%20construcción-yellow)
 ![Docker](https://img.shields.io/badge/runtime-Docker%20%2B%20Compose-2496ED?logo=docker&logoColor=white)
+![OS](https://img.shields.io/badge/OS-Ubuntu%20Server-E95420?logo=ubuntu&logoColor=white)
 ![IaC](https://img.shields.io/badge/infra-versionada%20en%20git-success)
+
+> 🇬🇧 **English summary:** A self-hosted homelab running on a recycled 2014 all-in-one PC (Celeron J1800, 4GB RAM) with Ubuntu Server and Docker Compose. It provides network-wide DNS with ad blocking and recursive resolution (Pi-hole + Unbound), an internal reverse proxy with its own certificate authority (Caddy), uptime monitoring with Telegram alerts (Uptime Kuma), a file server (Samba) and container management (Portainer). Every service is defined as code, and each folder documents the real troubleshooting it took to get it working. Docs are in Spanish.
 
 ---
 
@@ -13,6 +16,38 @@ Infraestructura casera para aprender Sysadmin, Cloud Engineering y AIOps con las
 Este repo es la base de mi laboratorio casero, pensado como terreno de práctica real para mi camino hacia **Infraestructura / Sysadmin / Cloud Engineering**, con **AIOps** como capa adicional de interés — no como reemplazo del foco en infra, sino como una herramienta más arriba de ella.
 
 La idea no es solo "instalar cosas" — cada carpeta de este repo tiene su propio `docker-compose.yml` versionado y, cuando aplica, un `README.md` con el troubleshooting real que hizo falta para dejarlo andando. Si algo se rompió, quedó anotado el porqué y el fix, en vez de barrerlo bajo la alfombra.
+
+## 🏗️ Arquitectura
+
+```mermaid
+flowchart LR
+    subgraph LAN["Red doméstica"]
+        C["💻 Dispositivos de la casa"]
+        D["📡 Deco X80<br/>router + DHCP"]
+    end
+
+    subgraph SRV["🖥️ Servidor — Ubuntu Server + Docker"]
+        CA["Caddy<br/>reverse proxy + CA interna"]
+        PH["Pi-hole<br/>DNS + bloqueo de ads"]
+        UB["Unbound<br/>DNS recursivo"]
+        PO["Portainer<br/>gestión de containers"]
+        UK["Uptime Kuma<br/>monitoreo"]
+        SM["Samba<br/>servidor de archivos"]
+        HDD[("HDD 2TB")]
+    end
+
+    D -. "DHCP entrega el servidor como DNS" .-> C
+    C -- "DNS :53" --> PH
+    PH --> UB
+    UB --> ROOT["🌐 Root servers"]
+    C -- "https://*.home.arpa" --> CA
+    CA --> PH
+    CA --> PO
+    CA --> UK
+    C -- "SMB :445" --> SM
+    SM --> HDD
+    UK -- "alertas" --> TG["📱 Telegram"]
+```
 
 ## 🖥️ El hardware
 
@@ -31,23 +66,45 @@ Hardware modesto a propósito — parte del ejercicio es aprender a tomar buenas
 ## 🧱 Stack y filosofía
 
 - **Docker + Docker Compose** como runtime base — contenedores en vez de VMs completas, la skill que más se transfiere directo a Cloud (ECS, EKS, Cloud Run).
-- **Un `docker-compose.yml` + `.env` por servicio**, cada uno en su propia carpeta, como ejercicio de Infrastructure as Code liviano.
+- **Un `docker-compose.yml` por servicio**, cada uno en su propia carpeta, como ejercicio de Infrastructure as Code liviano. Los servicios que necesitan secretos traen un `.env.example` con las variables a completar.
 - **Todo versionado en Git** desde el día uno — decisiones, configs y fixes quedan documentados, no solo en mi cabeza.
 - **`.env` y datos persistentes nunca se suben** — solo la infraestructura como código.
+- **Mínimo privilegio por default** — el socket de Docker solo se monta donde es imprescindible (Portainer), y ningún servicio se expone fuera de la LAN.
 
-## 📦 Proyectos
+## 📦 Servicios
 
 | Servicio | Qué hace | Estado |
 |---|---|---|
-| [`pihole/`](./pihole) | DNS propio con bloqueo de ads (Pi-hole) + resolución recursiva sin terceros (Unbound) | ✅ Funcionando |
+| [`pihole/`](./pihole) | DNS propio con bloqueo de ads (Pi-hole, ~271k dominios) + resolución recursiva sin terceros (Unbound) | ✅ Funcionando |
 | [`portainer/`](./portainer) | Panel visual de gestión de containers | ✅ Funcionando |
 | [`samba/`](./samba) | Servidor de archivos sobre el disco Seagate | ✅ Funcionando |
-| [`uptime-kuma/`](./uptime-kuma) | Monitoreo de disponibilidad de los 5 servicios clave, con alertas por Telegram | ✅ Funcionando |
-| `reverse-proxy/` | Caddy — acceso a cada servicio por nombre (`servicio.home.arpa`) en vez de IP:puerto | 🔜 Próximo |
+| [`uptime-kuma/`](./uptime-kuma) | Monitoreo de disponibilidad de 5 puntos clave de la red, con alertas por Telegram | ✅ Funcionando |
+| [`caddy/`](./caddy) | Reverse proxy — acceso a cada servicio por nombre (`servicio.home.arpa`) con HTTPS vía CA interna | ✅ Funcionando |
+| [`host/`](./host) | Configuración del sistema operativo fuera de Docker (servicios systemd) | ✅ Funcionando |
+| `backups/` | Backups automáticos de volúmenes y configs | 🔜 Próximo |
 | `gitea/` | Git self-hosted + runner CI/CD | 🔜 Planeado |
 | `wireguard/` | VPN para acceso remoto a la red doméstica | 🔜 Planeado |
 
 Cada carpeta con servicio activo tiene su propio README con arquitectura, setup, y — cuando lo hubo — el troubleshooting real documentado paso a paso.
+
+### Levantar un servicio
+
+```bash
+cd <servicio>/
+cp .env.example .env   # solo si la carpeta trae .env.example — completar los valores
+docker compose up -d
+```
+
+## 🔧 Problemas reales resueltos (destacados)
+
+Una selección de los diagnósticos más interesantes; el detalle completo está en el README de cada servicio.
+
+- **DNS que no respondía a nadie de la LAN** — Pi-hole descartaba en silencio todas las consultas. Se descartaron en orden el DNS manual del cliente, el aislamiento de clientes del router (con `tcpdump`) y las reglas NAT de Docker, hasta encontrar en el log de FTL que el `listeningMode LOCAL` trataba el tráfico NAT-eado como externo. → [pihole/](./pihole)
+- **Variables de entorno que se ignoraban sin avisar** — Pi-hole v6 dejó de leer `PIHOLE_DNS_` y `WEBPASSWORD` de v5; la pista fue un conteo de variables en el log de arranque. → [pihole/](./pihole)
+- **Dos gestores de red peleando por la misma interfaz** — NetworkManager y Netplan reactivando el WiFi después de haberlo desactivado. → [Topología de red](#gotcha-networkmanager-vs-netplan-peleando-por-la-misma-interfaz)
+- **Cuatro configuraciones de red medidas con datos** — de un dongle USB que falló por hardware a Gigabit real, validando cada paso con `dmesg`, `ethtool`, `speedtest-cli` y mediciones de jitter. → [Topología de red](#-topología-de-red-y-su-historia)
+- **Red de Docker corrupta tras un corte de luz** — `Address already in use` en una IP fija sin ningún container usándola. → [pihole/](./pihole)
+- **Pantalla física que no se apagaba** — tres métodos fallidos (y por qué) antes de llegar al framebuffer del kernel. → [Apagado del panel físico](#-apagado-del-panel-físico)
 
 ## 🌐 Topología de red (y su historia)
 
@@ -71,42 +128,50 @@ Fix: `nmcli connection delete <nombre-del-perfil>` para borrar el perfil persist
 
 ### Configuración final
 
-Una sola interfaz activa (`enp2s0`, Ethernet), sin WiFi de respaldo por ahora. Reserva DHCP de `192.168.10.150` en el Deco atada a la MAC del cable (`f0:76:1c:26:9f:86`). Pi-hole escucha en `0.0.0.0`, así que responde sin importar la interfaz por la que llegue la consulta.
+Una sola interfaz activa (`enp2s0`, Ethernet), sin WiFi de respaldo por ahora. IP fija `192.168.10.150` mediante reserva DHCP en el Deco, atada a la MAC de la placa Ethernet. Pi-hole escucha en `0.0.0.0`, así que responde sin importar la interfaz por la que llegue la consulta.
+
+## 🖥️ Apagado del panel físico
+
+El servidor no tiene monitor conectado en uso normal (headless, acceso por SSH), pero el panel integrado del AIO quedaba encendido indefinidamente a pesar de `consoleblank` configurado en GRUB.
+
+Se probaron 3 métodos antes de encontrar uno que funcionara en este hardware:
+
+- `consoleblank=60` (kernel param) — solo pone texto negro, no dispara DPMS real
+- `vbetool dpms off` — falla con "Real mode call failed" (necesita BIOS legacy, el equipo arranca en UEFI)
+- `setterm --blank force` — falla por detección de terminal (`TERM` no soportado), incluso corriendo sin sesión SSH de por medio
+
+**Lo que funciona:** escribir directo al framebuffer del kernel:
+
+```bash
+echo 4 | sudo tee /sys/class/graphics/fb0/blank   # apagar (powerdown real)
+echo 0 | sudo tee /sys/class/graphics/fb0/blank   # reactivar si hace falta
+```
+
+Automatizado como servicio systemd que corre una vez en cada arranque — la unidad está versionada en [`host/screen-off.service`](./host/screen-off.service).
 
 ## 🗺️ Roadmap general
 
 ```
-Docker + Git ──► Pi-hole + Unbound ──► Portainer ──► Samba ──► Uptime Kuma ──► Reverse Proxy
-                                                                                     │
-        ┌──────────────────────────────────────────────────────────────────────────┘
+Docker + Git ──► Pi-hole + Unbound ──► Portainer ──► Samba ──► Uptime Kuma ──► Reverse Proxy (Caddy) ✅
+                                                                                        │
+        ┌───────────────────────────────────────────────────────────────────────────────┘
         ▼
   Backups ──► Gitea + CI/CD ──► WireGuard
         │
         └──► AIOps: n8n/Node-RED + API de Claude sobre logs y alertas
 ```
 
-Este homelab alimenta directo mi camino hacia certificaciones AWS (arrancando por Cloud Practitioner) y sirve de entorno de práctica para Terraform antes de tocar infraestructura real de clientes.
+Este homelab alimenta directo mi camino hacia certificaciones AWS (arrancando por Cloud Practitioner) y sirve de entorno de práctica para Terraform.
 
-## Apagado del panel físico
+<!--
+## 📸 Capturas
 
-El servidor no tiene monitor conectado en uso normal (headless, acceso
-por SSH), pero el panel integrado del AIO quedaba encendido indefinidamente
-a pesar de `consoleblank` configurado en GRUB.
+Descomentar cuando estén las imágenes en docs/img/
 
-Se probaron 3 métodos antes de encontrar uno que funcionara en este hardware:
-- `consoleblank=60` (kernel param) — solo pone texto negro, no dispara DPMS real
-- `vbetool dpms off` — falla con "Real mode call failed" (necesita BIOS legacy,
-  el equipo arranca en UEFI)
-- `setterm --blank force` — falla por detección de terminal (`TERM` no
-  soportado), incluso corriendo sin sesión SSH de por medio
-
-**Lo que funciona:** escribir directo al framebuffer del kernel:
-```bash
-echo 4 | sudo tee /sys/class/graphics/fb0/blank   # apagar (powerdown real)
-echo 0 | sudo tee /sys/class/graphics/fb0/blank   # reactivar si hace falta
-```
-Automatizado como servicio systemd (`screen-off.service`), corre una vez
-en cada arranque.
+![Uptime Kuma](docs/img/uptime-kuma.png)
+![Pi-hole](docs/img/pihole.png)
+![Portainer](docs/img/portainer.png)
+-->
 
 ## 🎯 Por qué existe este repo
 

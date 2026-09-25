@@ -17,24 +17,34 @@ sin actualizaciones hace más de 5 años).
 
 ## Setup
 
-1. Generar el hash de usuario:
+1. Copiar `.env.example` a `.env`.
+2. Generar el hash de usuario:
    `docker run -it --rm ghcr.io/servercontainers/samba:latest create-hash.sh`
-2. Pegar el hash completo en `.env` como `ACCOUNT_<usuario>=<hash>`
-3. Confirmar que el punto de montaje del disco pertenece al usuario
+3. Completar en `.env` `SAMBA_USER` (el usuario real del host) y
+   `SAMBA_PASSWORD_HASH` (el hash completo del paso anterior).
+4. Confirmar que el punto de montaje del disco pertenece al usuario
    correcto (no a root) antes de levantar el container:
    `sudo chown -R <usuario>:<usuario> /mnt/disco-seagate`
-4. `docker compose up -d`
+5. `docker compose up -d`
 
 ## Gotchas
 
 - **Permisos del punto de montaje**: si `/mnt/disco-seagate` pertenece a
   `root`, el usuario de Samba (aunque tenga el UID correcto) puede leer
   pero no escribir. Hay que hacer `chown` al usuario real antes de conectar.
-- El usuario en `ACCOUNT_<nombre>`, en `valid users` del volume config, y
-  el usuario real del sistema (mismo UID) tienen que coincidir exactamente
-  en nombre — un desajuste ahí rompe la autenticación silenciosamente.
+- **El nombre de usuario tiene que coincidir en todos lados**: la variable
+  `ACCOUNT_<usuario>`, el `valid users` del volume config y el usuario real
+  del sistema (mismo UID). Un desajuste rompe la autenticación sin dar un
+  error claro. Por eso el compose arma los dos primeros a partir de una
+  sola variable (`SAMBA_USER`).
+- **`WSDD2_DISABLE: 0` desactiva WSDD2 en vez de activarlo**: el entrypoint
+  de la imagen chequea si la variable *existe* (`${WSDD2_DISABLE+x}`), no su
+  valor. Para dejar WSDD2 (descubrimiento en "Red" de Windows) andando, la
+  variable directamente no se define. Se confirma en el arranque:
+  `docker logs samba | grep WSDD2` no debería mostrar `WSDD2 - DISABLED`.
 
 ## Acceso
 
-- Desde Windows: `\\192.168.10.150\Seagate`
-- Usuario: tizimessina
+- Desde Windows: `\\192.168.10.150\Seagate` (o desde "Red" en el Explorador,
+  gracias a WSDD2)
+- Usuario: el definido en `SAMBA_USER`

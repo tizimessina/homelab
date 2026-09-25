@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     ports:
       - "9443:9443"   # Web UI (HTTPS, self-signed por default)
-      - "8000:8000"   # Solo necesario si vas a conectar Edge Agents remotos
+      # 8000 (túnel de Edge Agents remotos) no se publica: no hay agentes remotos
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./portainer-data:/data

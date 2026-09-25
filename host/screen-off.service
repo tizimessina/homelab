@@ -1,0 +1,10 @@
+[Unit]
+Description=Apaga el panel integrado del AIO (servidor headless)
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'echo 4 > /sys/class/graphics/fb0/blank'
+
+[Install]
+WantedBy=multi-user.target
