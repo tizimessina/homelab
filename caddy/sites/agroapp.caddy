@@ -1,0 +1,12 @@
+# AgroApp — ver ../../agroapp/README.md
+# Caddy llega a los contenedores por nombre a través de la red externa `proxy`.
+
+agroapp.home.arpa {
+    tls internal
+    reverse_proxy agroapp-web:80
+}
+
+api.agroapp.home.arpa {
+    tls internal
+    reverse_proxy agroapp-api:3000
+}

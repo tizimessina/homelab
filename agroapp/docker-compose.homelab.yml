@@ -1,0 +1,27 @@
+# Override de despliegue de AgroApp en el homelab.
+# Se aplica encima del docker-compose.yml del repo de la app (~/agroapp), que
+# no se modifica. Usar ./deploy.sh en vez de invocarlo a mano.
+
+services:
+  db:
+    # La base solo es accesible desde la red interna del stack.
+    ports: !reset []
+
+  api:
+    ports: !reset []
+    environment:
+      JWT_SECRET: ${JWT_SECRET:?definir JWT_SECRET en .env}
+      CORS_ORIGIN: ${AGROAPP_WEB_ORIGIN:?definir AGROAPP_WEB_ORIGIN en .env}
+    networks: [default, proxy]
+
+  web:
+    ports: !reset []
+    build:
+      args:
+        # Vite la resuelve al compilar: cambiarla requiere rebuild (deploy.sh lo hace).
+        VITE_API_URL: ${AGROAPP_API_URL:?definir AGROAPP_API_URL en .env}
+    networks: [default, proxy]
+
+networks:
+  proxy:
+    external: true
