@@ -71,6 +71,7 @@ Hardware modesto a propósito — parte del ejercicio es aprender a tomar buenas
 - **Un `docker-compose.yml` por servicio**, cada uno en su propia carpeta, como ejercicio de Infrastructure as Code liviano. Los servicios que necesitan secretos traen un `.env.example` con las variables a completar.
 - **Todo versionado en Git** desde el día uno — decisiones, configs y fixes quedan documentados, no solo en mi cabeza.
 - **`.env` y datos persistentes nunca se suben** — solo la infraestructura como código.
+- **Imágenes con versión fija, nunca `:latest`** — una actualización es un cambio explícito en el compose (y un commit), no algo que pasa solo al recrear un container.
 - **Mínimo privilegio por default** — el socket de Docker solo se monta donde es imprescindible (Portainer), y ningún servicio se expone fuera de la LAN.
 - **Apps propias sin puertos en el host** — las aplicaciones nuevas (como AgroApp) solo viven en una red Docker compartida con Caddy, que es el único punto de entrada.
 

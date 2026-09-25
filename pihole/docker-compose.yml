@@ -1,6 +1,6 @@
 services:
   unbound:
-    image: mvance/unbound:latest
+    image: mvance/unbound:1.22.0
     container_name: unbound
     restart: unless-stopped
     networks:
@@ -10,7 +10,7 @@ services:
       - ./unbound-data:/opt/unbound/etc/unbound
 
   pihole:
-    image: pihole/pihole:latest
+    image: pihole/pihole:2026.07.2
     container_name: pihole
     restart: unless-stopped
     depends_on:

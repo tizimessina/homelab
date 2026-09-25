@@ -100,3 +100,4 @@ Total: ~271k dominios en gravity.
 - Web UI: https://pihole.home.arpa (vía [Caddy](../caddy)) o http://192.168.10.150:8080/admin
 - Ver upstream actual: `docker exec pihole pihole-FTL --config dns.upstreams`
 - Ver logs: `docker compose logs pihole` / `docker compose logs unbound`
+- Imágenes fijadas: `pihole/pihole:2026.07.2` (Core v6.4.3, Web v6.6, FTL v6.7) y `mvance/unbound:1.22.0`
