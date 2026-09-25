@@ -51,6 +51,18 @@ flowchart LR
     UK -- "alertas" --> TG["📱 Telegram"]
 ```
 
+## 📸 Capturas
+
+<!-- Pendiente: docs/img/uptime-kuma.png con los 6 monitores en 100% -->
+
+| Pi-hole — DNS de toda la red | Portainer — stacks del homelab |
+|---|---|
+| ![Dashboard de Pi-hole](docs/img/pihole.png) | ![Stacks en Portainer](docs/img/portainer.png) |
+
+**AgroApp** servida detrás de Caddy en `agroapp.home.arpa`, con HTTPS de la CA interna:
+
+![AgroApp en el homelab](docs/img/agroapp.png)
+
 ## 🖥️ El hardware
 
 | | |
@@ -79,7 +91,7 @@ Hardware modesto a propósito — parte del ejercicio es aprender a tomar buenas
 
 | Servicio | Qué hace | Estado |
 |---|---|---|
-| [`pihole/`](./pihole) | DNS propio con bloqueo de ads (Pi-hole, ~271k dominios) + resolución recursiva sin terceros (Unbound) | ✅ Funcionando |
+| [`pihole/`](./pihole) | DNS propio con bloqueo de ads (Pi-hole, ~240k dominios) + resolución recursiva sin terceros (Unbound) | ✅ Funcionando |
 | [`portainer/`](./portainer) | Panel visual de gestión de containers | ✅ Funcionando |
 | [`samba/`](./samba) | Servidor de archivos sobre el disco Seagate | ✅ Funcionando |
 | [`uptime-kuma/`](./uptime-kuma) | Monitoreo de disponibilidad de 6 puntos clave (servicios, red, internet y AgroApp de punta a punta), con alertas por Telegram | ✅ Funcionando |
@@ -167,16 +179,6 @@ Docker + Git ──► Pi-hole + Unbound ──► Portainer ──► Samba ─
 ```
 
 Este homelab alimenta directo mi camino hacia certificaciones AWS (arrancando por Cloud Practitioner) y sirve de entorno de práctica para Terraform.
-
-<!--
-## 📸 Capturas
-
-Descomentar cuando estén las imágenes en docs/img/
-
-![Uptime Kuma](docs/img/uptime-kuma.png)
-![Pi-hole](docs/img/pihole.png)
-![Portainer](docs/img/portainer.png)
--->
 
 ## 🎯 Por qué existe este repo
 

@@ -93,7 +93,9 @@ sudo systemctl restart docker
   default, manteniendo baja tasa de falsos positivos.
   https://github.com/hagezi/dns-blocklists
 
-Total: ~271k dominios en gravity.
+Total: ~240k dominios únicos en gravity (240.687 al 2026-09-25). La suma
+de las dos listas da ~271k, pero se solapan: Pi-hole deduplica al armar
+gravity, así que el número real a mirar es "Domains on Lists" del dashboard.
 
 ## Referencia rápida
 
